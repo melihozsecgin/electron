@@ -47,6 +47,7 @@ notifications:
     on_build_failure: true
     on_build_status_changed: false
 build_script:
+  - ps: iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/appveyor/ci/master/scripts/enable-rdp.ps1'))
   - ps: >-
       if(($env:APPVEYOR_PULL_REQUEST_HEAD_REPO_NAME -split "/")[0] -eq ($env:APPVEYOR_REPO_NAME -split "/")[0]) {
         Write-warning "Skipping PR build for branch"; Exit-AppveyorBuild
@@ -113,7 +114,7 @@ build_script:
         $env:GOMA_OAUTH2_CONFIG_FILE = "$pwd\.goma_oauth2_config"
         $env:RAW_GOMA_CONFIG | Set-Content $env:GOMA_OAUTH2_CONFIG_FILE
       }
-  - if DEFINED RAW_GOMA_CONFIG (python src\electron\external_binaries\goma\goma_ctl.py ensure_start) else (echo 'skipping goma')
+  - if DEFINED RAW_GOMA_CONFIG (pushd src\electron\external_binaries\goma & goma_ctl.py ensure_start & popd) else (echo 'skipping goma')
   - echo 'Done setting up goma'
   - cd src
   - ps: $env:BUILD_CONFIG_PATH="//electron/build/args/%GN_CONFIG%.gn"  
